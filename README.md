@@ -1,65 +1,145 @@
-# Azure Databricks End-to-End Data Engineering Project
+# 🚀 Azure Databricks End-to-End Data Engineering Project
 
-## Overview
-This project demonstrates an end-to-end data engineering pipeline built on **Azure Databricks**, following the **Medallion Architecture (Bronze, Silver, Gold)**.
+## 📌 Overview
 
-The pipeline ingests data from Azure Data Lake Storage (ADLS) using **Databricks Autoloader**, performs domain-based transformations in the Silver layer, and builds analytics-ready Gold tables using **Delta Live Tables (DLT)** and PySpark.
+This repository contains a **production-style end-to-end data engineering platform** built on **Azure Databricks**, implementing a scalable **Medallion Architecture (Bronze → Silver → Gold)**.
 
----
+The project demonstrates how enterprise data platforms are designed using:
+- Incremental ingestion with **Databricks Autoloader**
+- Domain-oriented transformations
+- **Delta Live Tables (DLT)** for stateful dimensions
+- YAML-based orchestration using **Databricks Jobs**
 
-## Architecture
-- **Bronze**: Incremental ingestion using Databricks Autoloader
-- **Silver**: Cleaned and curated domain tables (customers, orders, products, regions)
-- **Gold**:
-  - SCD Type 1 dimensions using Delta Lake
-  - SCD Type 2 dimensions using Delta Live Tables (DLT)
-  - Fact tables for analytics
+The focus is on **scalability, data quality, and real-world design patterns**, not just notebook execution.
 
 ---
 
-## Technologies Used
+## 🏗️ Architecture
+
+![Architecture Diagram](https://raw.githubusercontent.com/Pulkit-Garg15/databricks-end-to-end-project/main/docs/architecture.png)
+
+### 🔹 Bronze Layer
+- Incremental file ingestion from **Azure Data Lake Storage (ADLS)**
+- Implemented using **Databricks Autoloader (cloudFiles)**
+- Metadata-driven ingestion using a parameter notebook
+- Raw data persisted as Delta tables
+
+### 🔹 Silver Layer
+Domain-based curated datasets:
+- Customers
+- Orders
+- Products
+- Regions
+
+Responsibilities:
+- Schema standardization
+- Data cleansing
+- Business-level transformations
+- Independent, parallel execution per domain
+
+### 🔹 Gold Layer
+
+| Dataset | Implementation | Strategy |
+|------|---------------|----------|
+| Customers | Delta Lake | SCD Type 1 |
+| Products | Delta Live Tables | SCD Type 2 |
+| Orders | Delta Lake | Fact Table |
+
+#### Why a Mixed SCD Strategy?
+- **SCD Type 1** is used where historical tracking is not required (e.g. customers)
+- **SCD Type 2** is implemented for product data using **DLT `apply_changes`** to track historical changes
+- Fact tables depend on fully processed Gold dimensions
+
+---
+
+## 🔄 Orchestration & Pipelines
+
+End-to-end execution is orchestrated using **Databricks Jobs (YAML)**:
+
+- Metadata-driven ingestion using `for_each_task`
+- Parallel Silver processing
+- Gold layer executed with strict dependencies
+- **DLT pipeline executed as a first-class job task**
+- Serverless compute with **Photon enabled**
+
+The Gold Products pipeline is defined and deployed using **DLT YAML configuration**.
+
+---
+
+## 🛠️ Technologies Used
+
 - Azure Databricks
 - Delta Lake
 - Delta Live Tables (DLT)
 - Databricks Autoloader
 - PySpark
 - Azure Data Lake Storage (ADLS)
+- Databricks Jobs (YAML)
+- Photon Engine
+- Serverless DLT Pipelines
 
 ---
 
-## Pipeline Orchestration
-- End-to-end orchestration using **Databricks Jobs (YAML)**
-- Dynamic ingestion using metadata-driven `for_each_task`
-- DLT pipeline executed as a first-class task
+## 📂 Repository Structure
+databricks-end-to-end-project/
+│
+├── notebooks/
+│ ├── bronze/
+│ ├── silver/
+│ ├── gold/
+│
+├── pipelines/
+│ ├── jobs_e2e_ingestion.yml
+│ └── dlt_gold_products.yml
+│
+├── docs/
+│ └── architecture.png
+│
+├── sample_data/
+├── README.md
+└── .gitignore
+
 
 ---
 
-## Repository Structure
-notebooks/
-bronze/
-silver/
-gold/
-pipelines/
-docs/
-sample_data/
+## ▶️ How to Run the Project
 
+1. Upload source parquet files to **Azure Data Lake Storage**
+2. Update dataset metadata in `bronze_parameters`
+3. Deploy the Databricks Job using `jobs_e2e_ingestion.yml`
+4. Deploy the DLT pipeline using `dlt_gold_products.yml`
+5. Trigger the **e2e-ingestion-pipeline** job
 
 ---
 
-## How to Run
-1. Configure source data in ADLS
-2. Update metadata in `bronze_parameters`
-3. Deploy Jobs and DLT pipelines using YAML
-4. Trigger the end-to-end Databricks Job
+## 📈 Key Design Patterns Demonstrated
+
+- Medallion Architecture (Bronze–Silver–Gold)
+- Incremental ingestion using Autoloader
+- Metadata-driven pipelines
+- Domain-oriented Silver layer
+- Hybrid batch + streaming design
+- SCD Type 1 and SCD Type 2 modeling
+- Stateful transformations using Delta Live Tables
+- Enterprise-style orchestration with YAML
 
 ---
 
-## Future Enhancements
-- Add data quality checks using DLT expectations
-- Add monitoring and alerting
+## 🔮 Future Enhancements
+
+- Add DLT data quality expectations
 - CI/CD integration using Databricks CLI
+- Monitoring and alerting
+- Table optimization and retention automation
 
 ---
 
-## License
+## 👤 Author
+
+Built as a hands-on data engineering project to demonstrate **enterprise-grade Azure Databricks architecture and design patterns**.
+
+---
+
+## 📜 License
+
 MIT
