@@ -1,0 +1,35 @@
+# --------------------
+# Databricks
+# --------------------
+.databricks/
+*.dbc
+
+# --------------------
+# Spark / Delta
+# --------------------
+_checkpoint/
+_delta_log/
+spark-warehouse/
+
+# --------------------
+# Python
+# --------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# --------------------
+# Environment / Secrets
+# --------------------
+.env
+*.env
+secrets.json
+*.key
+*.pem
+
+# --------------------
+# OS files
+# --------------------
+.DS_Store
+Thumbs.db

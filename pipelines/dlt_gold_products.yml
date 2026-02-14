@@ -1,0 +1,16 @@
+resources:
+  pipelines:
+    pipeline_gold_products_ingestion:
+      name: gold_products_ingestion
+
+      libraries:
+        - glob:
+            include: /Workspace/Repos/<user>/databricks-end-to-end-project/notebooks/gold/gold_products_dlt_scd2.py
+
+      catalog: databricks_ete_catalog
+      schema: gold
+
+      serverless: true
+      photon: true
+
+      root_path: /Workspace/Repos/<user>/databricks-end-to-end-project

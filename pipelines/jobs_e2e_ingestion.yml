@@ -1,0 +1,84 @@
+resources:
+  jobs:
+    e2e_ingestion_pipeline:
+      name: e2e-ingestion-pipeline
+
+      tasks:
+        - task_key: bronze_parameters
+          notebook_task:
+            notebook_path: /Workspace/Users/pulkitgarg1501@gmail.com/databricks-end-to-end-project/notebooks/bronze/bronze_parameters
+            source: WORKSPACE
+
+        - task_key: bronze_autoloader
+          depends_on:
+            - task_key: bronze_parameters
+          for_each_task:
+            inputs: "{{tasks.bronze_parameters.values.output_dataset}}"
+            task:
+              task_key: bronze_autoloader_iteration
+              notebook_task:
+                notebook_path: /Workspace/Users/pulkitgarg1501@gmail.com/databricks-end-to-end-project/notebooks/bronze/bronze_ingestion_autoloader
+                base_parameters:
+                  file_name: "{{input.file_name}}"
+                source: WORKSPACE
+
+        - task_key: silver_customers_ingest
+          depends_on:
+            - task_key: bronze_autoloader
+          notebook_task:
+            notebook_path: /Workspace/Users/pulkitgarg1501@gmail.com/databricks-end-to-end-project/notebooks/silver/silver_customers
+            source: WORKSPACE
+
+        - task_key: silver_orders_ingest
+          depends_on:
+            - task_key: bronze_autoloader
+          notebook_task:
+            notebook_path: /Workspace/Users/pulkitgarg1501@gmail.com/databricks-end-to-end-project/notebooks/silver/silver_orders
+            source: WORKSPACE
+
+        - task_key: silver_products_ingest
+          depends_on:
+            - task_key: bronze_autoloader
+          notebook_task:
+            notebook_path: /Workspace/Users/pulkitgarg1501@gmail.com/databricks-end-to-end-project/notebooks/silver/silver_products
+            source: WORKSPACE
+
+        - task_key: silver_regions_ingest
+          depends_on:
+            - task_key: bronze_autoloader
+          notebook_task:
+            notebook_path: /Workspace/Users/pulkitgarg1501@gmail.com/databricks-end-to-end-project/notebooks/silver/silver_regions
+            source: WORKSPACE
+
+        - task_key: gold_customers_ingest
+          depends_on:
+            - task_key: silver_customers_ingest
+            - task_key: silver_orders_ingest
+            - task_key: silver_products_ingest
+            - task_key: silver_regions_ingest
+          notebook_task:
+            notebook_path: /Workspace/Users/pulkitgarg1501@gmail.com/databricks-end-to-end-project/notebooks/gold/gold_customers_scd1
+            source: WORKSPACE
+
+        - task_key: gold_products_ingest
+          depends_on:
+            - task_key: silver_products_ingest
+            - task_key: silver_orders_ingest
+            - task_key: silver_customers_ingest
+            - task_key: silver_regions_ingest
+          pipeline_task:
+            pipeline_id: 2b21f827-708e-4290-9e49-a351bb5724d4
+            full_refresh: false
+
+        - task_key: gold_orders_ingest
+          depends_on:
+            - task_key: gold_customers_ingest
+            - task_key: gold_products_ingest
+          notebook_task:
+            notebook_path: /Workspace/Users/pulkitgarg1501@gmail.com/databricks-end-to-end-project/notebooks/gold/gold_orders_fact
+            source: WORKSPACE
+
+      queue:
+        enabled: true
+
+      performance_target: PERFORMANCE_OPTIMIZED
