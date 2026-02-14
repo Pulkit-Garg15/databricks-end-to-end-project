@@ -1,5 +1,6 @@
 # Databricks notebook source
 from pyspark.sql.functions import *
+from pyspark.sql.window import *
 
 # COMMAND ----------
 
@@ -58,6 +59,8 @@ from delta.tables import DeltaTable
 # COMMAND ----------
 
 if spark.catalog.tableExists("databricks_ete_catalog.gold.orders"):
+  window_spec = Window.partitionBy("order_id", "dim_customer_id", "dim_product_id").orderBy(col("order_date").desc())
+  df_final = df_final.withColumn("rn", row_number().over(window_spec)).filter("rn == 1").drop("rn")
   dlt = DeltaTable.forName(spark, "databricks_ete_catalog.gold.orders")
   dlt.alias("trg").merge(df_final.alias("src"), "trg.order_id == src.order_id AND trg.dim_customer_id == src.dim_customer_id AND trg.dim_product_id == src.dim_product_id")\
     .whenMatchedUpdateAll()\
@@ -69,7 +72,7 @@ if spark.catalog.tableExists("databricks_ete_catalog.gold.orders"):
 else:
   df_final.write.format("delta").mode("overwrite")\
                 .option("path", "abfss://gold@databricksproject.dfs.core.windows.net/orders")\
-                .saveAsTable("databricks_ete_catalog.gold.orders")                .saveAsTable("databricks_ete_catalog.gold.orders")                .saveAsTable("databricks_ete_catalog.gold.orders")                .saveAsTable("databricks_ete_catalog.gold.orders")
+                .saveAsTable("databricks_ete_catalog.gold.orders")
 
 # COMMAND ----------
 
